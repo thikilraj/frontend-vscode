@@ -1,0 +1,718 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SkyCast - Weather Forecast Dashboard</title>
+
+    <!-- Bootstrap 5 CSS CDN -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Bootstrap Icons CDN -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+
+    <style>
+      :root {
+        --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        --card-bg: rgba(30, 41, 59, 0.7);
+        --glass-border: rgba(255, 255, 255, 0.1);
+      }
+
+      body {
+        background: var(--bg-gradient);
+        color: #f8fafc;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Glassmorphism Card Style */
+      .glass-card {
+        background: var(--card-bg);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      }
+
+      .weather-icon-lg {
+        font-size: 5rem;
+        line-height: 1;
+      }
+
+      .weather-icon-md {
+        font-size: 2.5rem;
+      }
+
+      .temp-main {
+        font-size: 4rem;
+        font-weight: 700;
+        line-height: 1;
+      }
+
+      .search-history-badge {
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .search-history-badge:hover {
+        background-color: #3b82f6 !important;
+        color: #fff !important;
+      }
+
+      .forecast-card {
+        transition:
+          transform 0.2s ease,
+          background-color 0.2s ease;
+      }
+
+      .forecast-card:hover {
+        transform: translateY(-4px);
+        background: rgba(51, 65, 85, 0.8);
+      }
+
+      .unit-toggle-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+      }
+
+      footer {
+        margin-top: auto;
+        border-top: 1px solid var(--glass-border);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navigation Bar -->
+    <nav
+      class="navbar navbar-expand-lg navbar-dark border-bottom border-secondary border-opacity-25 py-3"
+    >
+      <div class="container">
+        <a
+          class="navbar-brand fw-bold text-info fs-3 d-flex align-items-center gap-2"
+          href="#"
+        >
+          <i class="bi bi-cloud-sun-fill text-warning"></i> SkyCast
+        </a>
+
+        <div class="d-flex align-items-center gap-3">
+          <!-- Temperature Unit Toggle -->
+          <button
+            id="unit-toggle"
+            class="btn btn-outline-info unit-toggle-btn"
+            onclick="toggleUnit()"
+          >
+            °C
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Container -->
+    <main class="container my-4">
+      <!-- Search & History Section -->
+      <div class="row mb-4 justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
+          <form
+            id="search-form"
+            onsubmit="handleSearch(event)"
+            class="input-group input-group-lg shadow-sm"
+          >
+            <input
+              type="text"
+              id="city-input"
+              class="form-control bg-dark text-white border-secondary"
+              placeholder="Search city (e.g., London, Tokyo, New York)..."
+              required
+            />
+            <button class="btn btn-primary px-4" type="submit">
+              <i class="bi bi-search"></i>
+            </button>
+          </form>
+          <!-- Recent Searches -->
+          <div class="mt-2 d-flex align-items-center flex-wrap gap-2">
+            <small class="text-secondary"
+              ><i class="bi bi-clock-history me-1"></i>Recent:</small
+            >
+            <div id="search-history" class="d-flex flex-wrap gap-1">
+              <!-- Dynamic History Badges -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Dashboard Grid -->
+      <div class="row g-4">
+        <!-- Left Column: Current Weather Overview -->
+        <div class="col-12 col-lg-7">
+          <div
+            class="glass-card p-4 h-100 d-flex flex-direction-column justify-content-between"
+          >
+            <div>
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <h2 id="city-name" class="fw-bold mb-0">--</h2>
+                  <p id="current-date" class="text-secondary mb-0">--</p>
+                </div>
+                <span
+                  id="weather-badge"
+                  class="badge bg-info bg-opacity-25 text-info px-3 py-2 fs-6 rounded-pill"
+                >
+                  --
+                </span>
+              </div>
+
+              <!-- Temp & Icon Display -->
+              <div class="d-flex align-items-center my-4 gap-4 flex-wrap">
+                <div
+                  id="weather-icon-container"
+                  class="text-warning weather-icon-lg"
+                >
+                  <i class="bi bi-sun"></i>
+                </div>
+                <div>
+                  <div class="d-flex align-items-start">
+                    <span id="current-temp" class="temp-main">0</span>
+                    <span id="temp-unit" class="fs-2 text-info fw-bold"
+                      >°C</span
+                    >
+                  </div>
+                  <p
+                    id="weather-description"
+                    class="text-capitalize fs-5 text-light mb-0"
+                  >
+                    --
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Weather Details Grid -->
+            <div
+              class="row g-3 pt-3 border-top border-secondary border-opacity-25"
+            >
+              <div class="col-6 col-sm-3">
+                <div class="p-2 text-center rounded bg-dark bg-opacity-25">
+                  <i class="bi bi-wind fs-4 text-info"></i>
+                  <div class="small text-secondary mt-1">Wind</div>
+                  <div id="wind-speed" class="fw-bold">0 km/h</div>
+                </div>
+              </div>
+              <div class="col-6 col-sm-3">
+                <div class="p-2 text-center rounded bg-dark bg-opacity-25">
+                  <i class="bi bi-droplet-half fs-4 text-primary"></i>
+                  <div class="small text-secondary mt-1">Humidity</div>
+                  <div id="humidity" class="fw-bold">0%</div>
+                </div>
+              </div>
+              <div class="col-6 col-sm-3">
+                <div class="p-2 text-center rounded bg-dark bg-opacity-25">
+                  <i class="bi bi-speedometer fs-4 text-warning"></i>
+                  <div class="small text-secondary mt-1">Pressure</div>
+                  <div id="pressure" class="fw-bold">0 hPa</div>
+                </div>
+              </div>
+              <div class="col-6 col-sm-3">
+                <div class="p-2 text-center rounded bg-dark bg-opacity-25">
+                  <i class="bi bi-eye fs-4 text-success"></i>
+                  <div class="small text-secondary mt-1">Visibility</div>
+                  <div id="visibility" class="fw-bold">0 km</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Today's Hourly Highlights -->
+        <div class="col-12 col-lg-5">
+          <div class="glass-card p-4 h-100">
+            <h5 class="fw-bold mb-3">
+              <i class="bi bi-clock me-2 text-info"></i>Today's Hourly Forecast
+            </h5>
+            <div id="hourly-container" class="d-flex flex-column gap-3">
+              <!-- Hourly items rendered dynamically -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Row: 5-Day Forecast -->
+        <div class="col-12">
+          <div class="glass-card p-4">
+            <h5 class="fw-bold mb-3">
+              <i class="bi bi-calendar-week me-2 text-info"></i>5-Day Forecast
+            </h5>
+            <div id="forecast-container" class="row g-3">
+              <!-- 5-Day Forecast Cards rendered dynamically -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-3 text-center text-secondary small">
+      <div class="container">
+        <p class="mb-0">
+          &copy; 2026 SkyCast Dashboard. Built with Bootstrap 5 & JavaScript.
+        </p>
+      </div>
+    </footer>
+
+    <!-- Application Logic Script -->
+    <script>
+      // State Management
+      let isCelsius = true;
+      let currentCity = "Chennai";
+      let recentSearches = ["Chennai", "London", "Tokyo", "New York"];
+
+      // Mock Database for Weather Data
+      const weatherDatabase = {
+        chennai: {
+          city: "Chennai, IN",
+          tempC: 32,
+          desc: "Sunny & Clear",
+          icon: "bi-sun-fill",
+          wind: 14,
+          humidity: 68,
+          pressure: 1008,
+          visibility: 10,
+          badge: "Hot & Clear",
+          hourly: [
+            { time: "12:00 PM", tempC: 32, icon: "bi-sun-fill" },
+            { time: "03:00 PM", tempC: 33, icon: "bi-sun-fill" },
+            { time: "06:00 PM", tempC: 30, icon: "bi-cloud-sun-fill" },
+            { time: "09:00 PM", tempC: 28, icon: "bi-moon-stars-fill" },
+          ],
+          forecast: [
+            {
+              day: "Wed",
+              date: "Sep 16",
+              tempC: 33,
+              desc: "Sunny",
+              icon: "bi-sun-fill",
+            },
+            {
+              day: "Thu",
+              date: "Sep 17",
+              tempC: 31,
+              desc: "Scattered Clouds",
+              icon: "bi-cloud-sun-fill",
+            },
+            {
+              day: "Fri",
+              date: "Sep 18",
+              tempC: 29,
+              desc: "Light Rain",
+              icon: "bi-cloud-drizzle-fill",
+            },
+            {
+              day: "Sat",
+              date: "Sep 19",
+              tempC: 30,
+              desc: "Thunderstorms",
+              icon: "bi-cloud-lightning-rain-fill",
+            },
+            {
+              day: "Sun",
+              date: "Sep 20",
+              tempC: 32,
+              desc: "Partly Cloudy",
+              icon: "bi-cloud-sun-fill",
+            },
+          ],
+        },
+        london: {
+          city: "London, UK",
+          tempC: 18,
+          desc: "Light Rain",
+          icon: "bi-cloud-rain-fill",
+          wind: 22,
+          humidity: 82,
+          pressure: 1015,
+          visibility: 8,
+          badge: "Rainy",
+          hourly: [
+            { time: "12:00 PM", tempC: 18, icon: "bi-cloud-rain-fill" },
+            { time: "03:00 PM", tempC: 19, icon: "bi-cloud-drizzle-fill" },
+            { time: "06:00 PM", tempC: 17, icon: "bi-cloud-fill" },
+            { time: "09:00 PM", tempC: 15, icon: "bi-cloud-moon-fill" },
+          ],
+          forecast: [
+            {
+              day: "Wed",
+              date: "Sep 16",
+              tempC: 17,
+              desc: "Heavy Rain",
+              icon: "bi-cloud-heavy-rain-fill",
+            },
+            {
+              day: "Thu",
+              date: "Sep 17",
+              tempC: 19,
+              desc: "Cloudy",
+              icon: "bi-cloud-fill",
+            },
+            {
+              day: "Fri",
+              date: "Sep 18",
+              tempC: 20,
+              desc: "Partly Cloudy",
+              icon: "bi-cloud-sun-fill",
+            },
+            {
+              day: "Sat",
+              date: "Sep 19",
+              tempC: 18,
+              desc: "Showers",
+              icon: "bi-cloud-rain-fill",
+            },
+            {
+              day: "Sun",
+              date: "Sep 20",
+              tempC: 16,
+              desc: "Windy",
+              icon: "bi-wind",
+            },
+          ],
+        },
+        tokyo: {
+          city: "Tokyo, JP",
+          tempC: 24,
+          desc: "Partly Cloudy",
+          icon: "bi-cloud-sun-fill",
+          wind: 12,
+          humidity: 60,
+          pressure: 1012,
+          visibility: 10,
+          badge: "Pleasant",
+          hourly: [
+            { time: "12:00 PM", tempC: 24, icon: "bi-cloud-sun-fill" },
+            { time: "03:00 PM", tempC: 25, icon: "bi-sun-fill" },
+            { time: "06:00 PM", tempC: 22, icon: "bi-cloud-sun-fill" },
+            { time: "09:00 PM", tempC: 20, icon: "bi-moon-fill" },
+          ],
+          forecast: [
+            {
+              day: "Wed",
+              date: "Sep 16",
+              tempC: 25,
+              desc: "Sunny",
+              icon: "bi-sun-fill",
+            },
+            {
+              day: "Thu",
+              date: "Sep 17",
+              tempC: 26,
+              desc: "Clear",
+              icon: "bi-sun-fill",
+            },
+            {
+              day: "Fri",
+              date: "Sep 18",
+              tempC: 23,
+              desc: "Cloudy",
+              icon: "bi-cloud-fill",
+            },
+            {
+              day: "Sat",
+              date: "Sep 19",
+              tempC: 22,
+              desc: "Light Rain",
+              icon: "bi-cloud-drizzle-fill",
+            },
+            {
+              day: "Sun",
+              date: "Sep 20",
+              tempC: 24,
+              desc: "Partly Cloudy",
+              icon: "bi-cloud-sun-fill",
+            },
+          ],
+        },
+        "new york": {
+          city: "New York, US",
+          tempC: 21,
+          desc: "Clear Sky",
+          icon: "bi-sun-fill",
+          wind: 16,
+          humidity: 55,
+          pressure: 1020,
+          visibility: 10,
+          badge: "Clear",
+          hourly: [
+            { time: "12:00 PM", tempC: 21, icon: "bi-sun-fill" },
+            { time: "03:00 PM", tempC: 23, icon: "bi-sun-fill" },
+            { time: "06:00 PM", tempC: 20, icon: "bi-cloud-sun-fill" },
+            { time: "09:00 PM", tempC: 18, icon: "bi-moon-stars-fill" },
+          ],
+          forecast: [
+            {
+              day: "Wed",
+              date: "Sep 16",
+              tempC: 22,
+              desc: "Sunny",
+              icon: "bi-sun-fill",
+            },
+            {
+              day: "Thu",
+              date: "Sep 17",
+              tempC: 24,
+              desc: "Partly Cloudy",
+              icon: "bi-cloud-sun-fill",
+            },
+            {
+              day: "Fri",
+              date: "Sep 18",
+              tempC: 20,
+              desc: "Windy",
+              icon: "bi-wind",
+            },
+            {
+              day: "Sat",
+              date: "Sep 19",
+              tempC: 19,
+              desc: "Showers",
+              icon: "bi-cloud-rain-fill",
+            },
+            {
+              day: "Sun",
+              date: "Sep 20",
+              tempC: 21,
+              desc: "Clear Sky",
+              icon: "bi-sun-fill",
+            },
+          ],
+        },
+      };
+
+      // Helper: Convert Celsius to Fahrenheit
+      function cToF(celsius) {
+        return Math.round((celsius * 9) / 5 + 32);
+      }
+
+      // Helper: Format Temp
+      function formatTemp(tempC) {
+        return isCelsius ? `${tempC}` : `${cToF(tempC)}`;
+      }
+
+      // Toggle Unit (°C / °F)
+      function toggleUnit() {
+        isCelsius = !isCelsius;
+        document.getElementById("unit-toggle").innerText = isCelsius
+          ? "°C"
+          : "°F";
+        document.getElementById("temp-unit").innerText = isCelsius
+          ? "°C"
+          : "°F";
+        loadWeatherData(currentCity);
+      }
+
+      // Handle Form Search
+      function handleSearch(event) {
+        event.preventDefault();
+        const input = document.getElementById("city-input");
+        const query = input.value.trim();
+        if (query) {
+          searchCity(query);
+          input.value = "";
+        }
+      }
+
+      // Search City
+      function searchCity(city) {
+        currentCity = city;
+        addRecentSearch(city);
+        loadWeatherData(city);
+      }
+
+      // Recent Searches Management
+      function addRecentSearch(city) {
+        const formatted = city.charAt(0).toUpperCase() + city.slice(1);
+        if (
+          !recentSearches
+            .map((s) => s.toLowerCase())
+            .includes(formatted.toLowerCase())
+        ) {
+          recentSearches.unshift(formatted);
+          if (recentSearches.length > 5) recentSearches.pop();
+        }
+        renderRecentSearches();
+      }
+
+      function renderRecentSearches() {
+        const historyContainer = document.getElementById("search-history");
+        historyContainer.innerHTML = "";
+        recentSearches.forEach((city) => {
+          const badge = document.createElement("span");
+          badge.className =
+            "badge bg-dark border border-secondary text-light search-history-badge px-2 py-1";
+          badge.innerText = city;
+          badge.onclick = () => searchCity(city);
+          historyContainer.appendChild(badge);
+        });
+      }
+
+      // Dynamic Weather Data Loader
+      function loadWeatherData(cityQuery) {
+        const key = cityQuery.toLowerCase();
+        // Use matched data or generate dynamic placeholder if city not in database
+        const data = weatherDatabase[key] || generateDynamicData(cityQuery);
+
+        // Render Current Weather
+        document.getElementById("city-name").innerText = data.city;
+        document.getElementById("current-date").innerText =
+          new Date().toLocaleDateString("en-US", {
+            weekday: "long",
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          });
+        document.getElementById("weather-badge").innerText = data.badge;
+        document.getElementById("current-temp").innerText = formatTemp(
+          data.tempC,
+        );
+        document.getElementById("weather-description").innerText = data.desc;
+        document.getElementById("weather-icon-container").innerHTML =
+          `<i class="bi ${data.icon}"></i>`;
+
+        // Render Detail Badges
+        document.getElementById("wind-speed").innerText = `${data.wind} km/h`;
+        document.getElementById("humidity").innerText = `${data.humidity}%`;
+        document.getElementById("pressure").innerText = `${data.pressure} hPa`;
+        document.getElementById("visibility").innerText =
+          `${data.visibility} km`;
+
+        // Render Hourly Forecast
+        renderHourlyForecast(data.hourly);
+
+        // Render 5-Day Forecast
+        render5DayForecast(data.forecast);
+      }
+
+      // Generate Dynamic Data for Unrecognized Searches
+      function generateDynamicData(cityName) {
+        const formattedName =
+          cityName.charAt(0).toUpperCase() + cityName.slice(1);
+        const randomTemp = Math.floor(Math.random() * 15) + 18;
+        return {
+          city: `${formattedName}, Custom`,
+          tempC: randomTemp,
+          desc: "Partly Cloudy",
+          icon: "bi-cloud-sun-fill",
+          wind: 15,
+          humidity: 62,
+          pressure: 1013,
+          visibility: 10,
+          badge: "Moderate",
+          hourly: [
+            { time: "12:00 PM", tempC: randomTemp, icon: "bi-cloud-sun-fill" },
+            { time: "03:00 PM", tempC: randomTemp + 2, icon: "bi-sun-fill" },
+            {
+              time: "06:00 PM",
+              tempC: randomTemp - 1,
+              icon: "bi-cloud-sun-fill",
+            },
+            {
+              time: "09:00 PM",
+              tempC: randomTemp - 3,
+              icon: "bi-moon-stars-fill",
+            },
+          ],
+          forecast: [
+            {
+              day: "Wed",
+              date: "Sep 16",
+              tempC: randomTemp + 1,
+              desc: "Sunny",
+              icon: "bi-sun-fill",
+            },
+            {
+              day: "Thu",
+              date: "Sep 17",
+              tempC: randomTemp - 1,
+              desc: "Cloudy",
+              icon: "bi-cloud-fill",
+            },
+            {
+              day: "Fri",
+              date: "Sep 18",
+              tempC: randomTemp,
+              desc: "Light Rain",
+              icon: "bi-cloud-drizzle-fill",
+            },
+            {
+              day: "Sat",
+              date: "Sep 19",
+              tempC: randomTemp + 2,
+              desc: "Clear",
+              icon: "bi-sun-fill",
+            },
+            {
+              day: "Sun",
+              date: "Sep 20",
+              tempC: randomTemp - 2,
+              desc: "Windy",
+              icon: "bi-wind",
+            },
+          ],
+        };
+      }
+
+      // Render Hourly Forecast Items
+      function renderHourlyForecast(hourlyData) {
+        const container = document.getElementById("hourly-container");
+        container.innerHTML = "";
+        hourlyData.forEach((item) => {
+          const row = document.createElement("div");
+          row.className =
+            "d-flex align-items-center justify-content-between p-2 rounded bg-dark bg-opacity-25";
+          row.innerHTML = `
+          <div class="d-flex align-items-center gap-3">
+            <i class="bi ${item.icon} fs-4 text-warning"></i>
+            <span class="fw-semibold">${item.time}</span>
+          </div>
+          <span class="fw-bold">${formatTemp(item.tempC)}°${isCelsius ? "C" : "F"}</span>
+        `;
+          container.appendChild(row);
+        });
+      }
+
+      // Render 5-Day Forecast Grid
+      function render5DayForecast(forecastData) {
+        const container = document.getElementById("forecast-container");
+        container.innerHTML = "";
+        forecastData.forEach((item) => {
+          const col = document.createElement("div");
+          col.className = "col-6 col-md-4 col-lg-2-4";
+          col.innerHTML = `
+          <div class="p-3 text-center rounded glass-card forecast-card h-100">
+            <div class="fw-bold text-info">${item.day}</div>
+            <div class="small text-secondary mb-2">${item.date}</div>
+            <i class="bi ${item.icon} weather-icon-md text-warning my-2"></i>
+            <div class="fw-bold fs-5">${formatTemp(item.tempC)}°${isCelsius ? "C" : "F"}</div>
+            <div class="small text-secondary text-truncate">${item.desc}</div>
+          </div>
+        `;
+          container.appendChild(col);
+        });
+      }
+
+      // Initialize App On Load
+      renderRecentSearches();
+      loadWeatherData(currentCity);
+    </script>
+  </body>
+</html>

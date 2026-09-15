@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FitPulse - Fitness & Workout Tracker</title>
+
+    <!-- Bootstrap 5 CSS CDN -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Bootstrap Icons CDN -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+
+    <style>
+      :root {
+        --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        --card-bg: rgba(30, 41, 59, 0.75);
+        --glass-border: rgba(255, 255, 255, 0.1);
+      }
+
+      body {
+        background: var(--bg-gradient);
+        color: #f8fafc;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Glassmorphism Card Style */
+      .glass-card {
+        background: var(--card-bg);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      }
+
+      .metric-value {
+        font-size: 2rem;
+        font-weight: 700;
+      }
+
+      .workout-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+      }
+
+      .category-btn.active {
+        background-color: #3b82f6 !important;
+        color: #ffffff !important;
+        border-color: #3b82f6 !important;
+      }
+
+      footer {
+        margin-top: auto;
+        border-top: 1px solid var(--glass-border);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navigation Bar -->
+    <nav
+      class="navbar navbar-expand-lg navbar-dark border-bottom border-secondary border-opacity-25 py-3"
+    >
+      <div class="container">
+        <a
+          class="navbar-brand fw-bold text-info fs-3 d-flex align-items-center gap-2"
+          href="#"
+        >
+          <i class="bi bi-lightning-charge-fill text-warning"></i> FitPulse
+        </a>
+
+        <!-- Quick Action Modal Trigger -->
+        <button
+          class="btn btn-primary fw-semibold"
+          data-bs-toggle="modal"
+          data-bs-target="#logWorkoutModal"
+        >
+          <i class="bi bi-plus-lg me-1"></i> Log Workout
+        </button>
+      </div>
+    </nav>
+
+    <!-- Main Container -->
+    <main class="container my-4">
+      <!-- Top Summary Stat Cards -->
+      <div class="row g-3 mb-4">
+        <div class="col-12 col-sm-6 col-md-3">
+          <div class="glass-card p-3">
+            <div class="d-flex align-items-center justify-content-between">
+              <span class="text-secondary small fw-semibold"
+                >CALORIES BURNED</span
+              >
+              <i class="bi bi-fire text-danger fs-4"></i>
+            </div>
+            <div class="metric-value text-danger mt-1" id="total-calories">
+              0 kcal
+            </div>
+            <div class="progress mt-2" style="height: 6px">
+              <div
+                id="calories-bar"
+                class="progress-bar bg-danger"
+                role="progressbar"
+                style="width: 0%"
+              ></div>
+            </div>
+            <small class="text-secondary mt-1 d-block">Goal: 600 kcal</small>
+          </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-md-3">
+          <div class="glass-card p-3">
+            <div class="d-flex align-items-center justify-content-between">
+              <span class="text-secondary small fw-semibold">WORKOUT TIME</span>
+              <i class="bi bi-clock-history text-info fs-4"></i>
+            </div>
+            <div class="metric-value text-info mt-1" id="total-duration">
+              0 mins
+            </div>
+            <div class="progress mt-2" style="height: 6px">
+              <div
+                id="duration-bar"
+                class="progress-bar bg-info"
+                role="progressbar"
+                style="width: 0%"
+              ></div>
+            </div>
+            <small class="text-secondary mt-1 d-block">Goal: 60 mins</small>
+          </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-md-3">
+          <div class="glass-card p-3">
+            <div class="d-flex align-items-center justify-content-between">
+              <span class="text-secondary small fw-semibold"
+                >WORKOUTS LOGGED</span
+              >
+              <i class="bi bi-trophy text-warning fs-4"></i>
+            </div>
+            <div class="metric-value text-warning mt-1" id="total-count">0</div>
+            <div class="progress mt-2" style="height: 6px">
+              <div
+                id="count-bar"
+                class="progress-bar bg-warning"
+                role="progressbar"
+                style="width: 0%"
+              ></div>
+            </div>
+            <small class="text-secondary mt-1 d-block">Goal: 3 Workouts</small>
+          </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-md-3">
+          <div class="glass-card p-3">
+            <div class="d-flex align-items-center justify-content-between">
+              <span class="text-secondary small fw-semibold">DAILY STREAK</span>
+              <i class="bi bi-award text-success fs-4"></i>
+            </div>
+            <div class="metric-value text-success mt-1">5 Days</div>
+            <div class="progress mt-2" style="height: 6px">
+              <div
+                class="progress-bar bg-success"
+                role="progressbar"
+                style="width: 100%"
+              ></div>
+            </div>
+            <small class="text-secondary mt-1 d-block"
+              >Consistency Streak</small
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Section: History & Filters -->
+      <div class="row g-4">
+        <!-- Left Column: Activity Feed -->
+        <div class="col-12 col-lg-8">
+          <div class="glass-card p-4 h-100">
+            <div
+              class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3"
+            >
+              <h5 class="fw-bold mb-0">
+                <i class="bi bi-list-task me-2 text-info"></i>Activity History
+              </h5>
+              <!-- Filter Category Buttons -->
+              <div class="d-flex gap-1 flex-wrap">
+                <button
+                  class="btn btn-sm btn-outline-secondary text-white category-btn active"
+                  onclick="filterCategory('All', this)"
+                >
+                  All
+                </button>
+                <button
+                  class="btn btn-sm btn-outline-secondary text-white category-btn"
+                  onclick="filterCategory('Cardio', this)"
+                >
+                  Cardio
+                </button>
+                <button
+                  class="btn btn-sm btn-outline-secondary text-white category-btn"
+                  onclick="filterCategory('Strength', this)"
+                >
+                  Strength
+                </button>
+                <button
+                  class="btn btn-sm btn-outline-secondary text-white category-btn"
+                  onclick="filterCategory('Flexibility', this)"
+                >
+                  Flexibility
+                </button>
+              </div>
+            </div>
+
+            <!-- Activity Log List Container -->
+            <div id="activity-log-list" class="d-flex flex-column gap-3 mt-3">
+              <!-- Dynamic entries loaded via JavaScript -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Quick Stats & Goals Overview -->
+        <div class="col-12 col-lg-4">
+          <div class="glass-card p-4 h-100">
+            <h5 class="fw-bold mb-3">
+              <i class="bi bi-pie-chart me-2 text-info"></i>Category Breakdown
+            </h5>
+            <div id="breakdown-list" class="d-flex flex-column gap-3">
+              <!-- Dynamic breakdown generated by JS -->
+            </div>
+
+            <hr class="border-secondary border-opacity-25 my-4" />
+
+            <h5 class="fw-bold mb-3">
+              <i class="bi bi-bullseye me-2 text-warning"></i>Weekly Target
+            </h5>
+            <div
+              class="p-3 bg-dark bg-opacity-25 rounded border border-secondary border-opacity-25"
+            >
+              <div class="d-flex justify-content-between mb-1">
+                <span class="small font-weight-bold"
+                  >Weekly Goal (3,500 kcal)</span
+                >
+                <span id="weekly-percentage" class="small text-info fw-bold"
+                  >0%</span
+                >
+              </div>
+              <div class="progress" style="height: 10px">
+                <div
+                  id="weekly-progress-bar"
+                  class="progress-bar bg-info"
+                  role="progressbar"
+                  style="width: 0%"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Log Workout Modal -->
+    <div
+      class="modal fade"
+      id="logWorkoutModal"
+      tabindex="-1"
+      aria-labelledby="logWorkoutModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div
+          class="modal-content glass-card text-white border border-secondary"
+        >
+          <div
+            class="modal-header border-bottom border-secondary border-opacity-25"
+          >
+            <h5 class="modal-title fw-bold" id="logWorkoutModalLabel">
+              <i class="bi bi-plus-circle me-2 text-info"></i>Log New Exercise
+            </h5>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <form id="workout-form" onsubmit="handleLogSubmit(event)">
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label small text-secondary"
+                  >Workout Name</label
+                >
+                <input
+                  type="text"
+                  id="workout-name"
+                  class="form-control bg-dark text-white border-secondary"
+                  placeholder="e.g., Morning Run, Bench Press"
+                  required
+                />
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label small text-secondary">Category</label>
+                <select
+                  id="workout-category"
+                  class="form-select bg-dark text-white border-secondary"
+                  required
+                >
+                  <option value="Cardio">Cardio</option>
+                  <option value="Strength">Strength</option>
+                  <option value="Flexibility">Flexibility</option>
+                </select>
+              </div>
+
+              <div class="row g-2 mb-3">
+                <div class="col-6">
+                  <label class="form-label small text-secondary"
+                    >Duration (mins)</label
+                  >
+                  <input
+                    type="number"
+                    id="workout-duration"
+                    class="form-control bg-dark text-white border-secondary"
+                    placeholder="30"
+                    min="1"
+                    required
+                  />
+                </div>
+                <div class="col-6">
+                  <label class="form-label small text-secondary"
+                    >Calories Burned</label
+                  >
+                  <input
+                    type="number"
+                    id="workout-calories"
+                    class="form-control bg-dark text-white border-secondary"
+                    placeholder="250"
+                    min="1"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="modal-footer border-top border-secondary border-opacity-25"
+            >
+              <button
+                type="button"
+                class="btn btn-outline-secondary text-white"
+                data-bs-dismiss="modal"
+              >
+                Cancel
+              </button>
+              <button type="submit" class="btn btn-primary fw-semibold">
+                Save Workout
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="py-3 text-center text-secondary small">
+      <div class="container">
+        <p class="mb-0">
+          &copy; 2026 FitPulse Tracker. Built with Bootstrap 5 & JavaScript.
+        </p>
+      </div>
+    </footer>
+
+    <!-- Bootstrap 5 Bundle with Popper JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Application Logic -->
+    <script>
+      // Initial Sample Workout Dataset
+      let workouts = [
+        {
+          id: 1,
+          name: "Outdoor Jogging",
+          category: "Cardio",
+          duration: 35,
+          calories: 320,
+          icon: "bi-person-walking",
+          color: "bg-danger text-white",
+        },
+        {
+          id: 2,
+          name: "Dumbbell Chest Press",
+          category: "Strength",
+          duration: 40,
+          calories: 210,
+          icon: "bi-square-fill",
+          color: "bg-primary text-white",
+        },
+        {
+          id: 3,
+          name: "Morning Yoga Stretch",
+          category: "Flexibility",
+          duration: 25,
+          calories: 90,
+          icon: "bi-heart-pulse-fill",
+          color: "bg-success text-white",
+        },
+      ];
+
+      let currentFilter = "All";
+
+      // Form submission handler
+      function handleLogSubmit(e) {
+        e.preventDefault();
+
+        const name = document.getElementById("workout-name").value;
+        const category = document.getElementById("workout-category").value;
+        const duration = parseInt(
+          document.getElementById("workout-duration").value,
+        );
+        const calories = parseInt(
+          document.getElementById("workout-calories").value,
+        );
+
+        let icon = "bi-activity";
+        let color = "bg-info text-white";
+
+        if (category === "Cardio") {
+          icon = "bi-person-walking";
+          color = "bg-danger text-white";
+        } else if (category === "Strength") {
+          icon = "bi-square-fill";
+          color = "bg-primary text-white";
+        } else if (category === "Flexibility") {
+          icon = "bi-heart-pulse-fill";
+          color = "bg-success text-white";
+        }
+
+        const newWorkout = {
+          id: Date.now(),
+          name,
+          category,
+          duration,
+          calories,
+          icon,
+          color,
+        };
+
+        workouts.unshift(newWorkout);
+        updateAppUI();
+
+        // Reset form and dismiss modal
+        document.getElementById("workout-form").reset();
+        const modalElement = document.getElementById("logWorkoutModal");
+        const modal = bootstrap.Modal.getInstance(modalElement);
+        modal.hide();
+      }
+
+      // Delete workout item
+      function deleteWorkout(id) {
+        workouts = workouts.filter((w) => w.id !== id);
+        updateAppUI();
+      }
+
+      // Filter Workout Categories
+      function filterCategory(category, buttonElement) {
+        currentFilter = category;
+
+        document.querySelectorAll(".category-btn").forEach((btn) => {
+          btn.classList.remove("active");
+        });
+        buttonElement.classList.add("active");
+
+        renderActivityList();
+      }
+
+      // Render Activity History List
+      function renderActivityList() {
+        const container = document.getElementById("activity-log-list");
+        container.innerHTML = "";
+
+        const filteredWorkouts = workouts.filter(
+          (w) => currentFilter === "All" || w.category === currentFilter,
+        );
+
+        if (filteredWorkouts.length === 0) {
+          container.innerHTML = `
+          <div class="text-center text-muted py-5">
+            <i class="bi bi-journal-x fs-1"></i>
+            <p class="mt-2">No workout entries match this filter.</p>
+          </div>
+        `;
+          return;
+        }
+
+        filteredWorkouts.forEach((w) => {
+          const item = document.createElement("div");
+          item.className =
+            "d-flex align-items-center justify-content-between p-3 rounded bg-dark bg-opacity-25 border border-secondary border-opacity-25";
+          item.innerHTML = `
+          <div class="d-flex align-items-center gap-3">
+            <div class="workout-icon ${w.color}">
+              <i class="bi ${w.icon}"></i>
+            </div>
+            <div>
+              <h6 class="mb-0 fw-bold">${w.name}</h6>
+              <span class="badge bg-secondary bg-opacity-50 text-light mt-1">${w.category}</span>
+            </div>
+          </div>
+          <div class="d-flex align-items-center gap-4">
+            <div class="text-end">
+              <div class="fw-bold text-danger"><i class="bi bi-fire me-1"></i>${w.calories} kcal</div>
+              <div class="small text-secondary"><i class="bi bi-clock me-1"></i>${w.duration} mins</div>
+            </div>
+            <button class="btn btn-sm btn-outline-danger" onclick="deleteWorkout(${w.id})">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        `;
+          container.appendChild(item);
+        });
+      }
+
+      // Update Summary Metrics & Progress Indicators
+      function updateMetrics() {
+        const totalCalories = workouts.reduce(
+          (sum, item) => sum + item.calories,
+          0,
+        );
+        const totalDuration = workouts.reduce(
+          (sum, item) => sum + item.duration,
+          0,
+        );
+        const totalCount = workouts.length;
+
+        document.getElementById("total-calories").innerText =
+          `${totalCalories} kcal`;
+        document.getElementById("total-duration").innerText =
+          `${totalDuration} mins`;
+        document.getElementById("total-count").innerText = `${totalCount}`;
+
+        // Goal Targets
+        const calorieGoal = 600;
+        const durationGoal = 60;
+        const countGoal = 3;
+
+        document.getElementById("calories-bar").style.width =
+          `${Math.min((totalCalories / calorieGoal) * 100, 100)}%`;
+        document.getElementById("duration-bar").style.width =
+          `${Math.min((totalDuration / durationGoal) * 100, 100)}%`;
+        document.getElementById("count-bar").style.width =
+          `${Math.min((totalCount / countGoal) * 100, 100)}%`;
+
+        // Weekly Goal (3,500 kcal target)
+        const weeklyGoal = 3500;
+        const weeklyPercentage = Math.min(
+          Math.round((totalCalories / weeklyGoal) * 100),
+          100,
+        );
+        document.getElementById("weekly-percentage").innerText =
+          `${weeklyPercentage}%`;
+        document.getElementById("weekly-progress-bar").style.width =
+          `${weeklyPercentage}%`;
+      }
+
+      // Render Category Breakdown Widget
+      function renderBreakdown() {
+        const breakdownContainer = document.getElementById("breakdown-list");
+        breakdownContainer.innerHTML = "";
+
+        const categories = ["Cardio", "Strength", "Flexibility"];
+
+        categories.forEach((cat) => {
+          const catWorkouts = workouts.filter((w) => w.category === cat);
+          const catCalories = catWorkouts.reduce(
+            (sum, item) => sum + item.calories,
+            0,
+          );
+
+          const row = document.createElement("div");
+          row.className = "p-2 rounded bg-dark bg-opacity-25";
+          row.innerHTML = `
+          <div class="d-flex justify-content-between mb-1">
+            <span class="small fw-semibold">${cat}</span>
+            <span class="small text-secondary">${catCalories} kcal (${catWorkouts.length} logs)</span>
+          </div>
+        `;
+          breakdownContainer.appendChild(row);
+        });
+      }
+
+      // Master UI Refresh Function
+      function updateAppUI() {
+        renderActivityList();
+        updateMetrics();
+        renderBreakdown();
+      }
+
+      // Initialize App
+      updateAppUI();
+    </script>
+  </body>
+</html>
